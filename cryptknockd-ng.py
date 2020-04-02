@@ -15,6 +15,7 @@ import OpenSSL
 import arc4
 import socket
 import pcapy
+#import iptc
 
 #/* Global variables */
 #pcap_t *session
@@ -33,6 +34,7 @@ def usage():
     print("-d Expected destination port of incoming UDP packets")
     print("Example: python3 cryptknockd -i eth0 -s 4500 -d 22796")
     return
+
 
 # Compares decrypted password to open/close passwords
 def compare_pass(supplied_pass):
@@ -60,5 +62,19 @@ def read_options():
         interface = sys.argv[2] # sys.argv[1] = -i
         source_port = sys.argv[4] # sys.argv[3] = -s
         dest_port = sys.argv[6] # sys.argv[5] = -d
+
+def command_open(cli_addr):
+    allow_list = []
+    inList = False
+
+    for i in range(0, len(allow_list)):
+        if (i == cli_addr):
+            inList = True
+
+    if (inList == True):
+        print("Client's IP Address is already allowed.")
+    else:
+        allow_list.append(cli_addr)
+
 
 read_options()
