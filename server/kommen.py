@@ -26,11 +26,26 @@ class Kommen:
         self.port = config['socket']['port']
         self.max_conn = config['socket']['max_conn']
 
-    def run(self):
-        svr = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
-        socket = svr.bind()
-        svr.listen(socket)
+    def run_tcp(self):
+        try:
+            svr_tcp = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
+            tcp_socket = svr_tcp.bind()
+            print("TCP Server started...")
+            svr_tcp.listen(tcp_socket)
+        except:
+            print("Error establishing socket in run_tcp method")
+
+    def run_udp(self):
+        try:
+            svr_udp = udp_server.UdpServer(self.ip_address, self.port)
+            svr_udp.bind()
+        except:
+            print("Error establishing socket in run_udp method")
 
 if __name__ == "__main__":
     kommen = Kommen(sys.argv[1])
-    kommen.run()
+    try:
+        kommen.run_tcp()
+        kommen.run_udp()
+    except:
+        print("Error creating thread for socket")

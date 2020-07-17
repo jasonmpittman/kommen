@@ -22,6 +22,7 @@ class TcpServer:
 
     def bind(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((self.ip_address, int(self.port)))
 
         return s
@@ -32,8 +33,8 @@ class TcpServer:
         while 1:
             client_socket, client_socket_info = socket.accept()
 
-            request = client_socket.recv(1024)
+            payload = client_socket.recv(1024)
              
-            client_socket.send(request)
+            client_socket.send(payload)
 
             client_socket.close()

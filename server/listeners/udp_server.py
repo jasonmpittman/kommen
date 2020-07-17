@@ -13,8 +13,21 @@ __status__ = "Development"
 
 import socket
 
-class TcpServer:
+class UdpServer:
+    
     def __init__(self, ip_address, port):
         self.ip_address = ip_address
         self.port = port
+
+    def bind(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock = (self.ip_address, int(self.port))
+        s.bind(sock)
+        
+        while True:
+            payload, client_socket = s.recvfrom(1024)
+            s.sendto(payload, client_socket) 
+
+
         
