@@ -6,7 +6,7 @@ __author__ = "Jason M. Pittman"
 __copyright__ = "Copyright 2020"
 __credits__ = ["Jason M. Pittman"]
 __license__ = "GPLv3"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __maintainer__ = "Jason M. Pittman"
 __email__ = "jpittman@highpoint.edu"
 __status__ = "Development"
@@ -27,14 +27,10 @@ class TcpServer:
 
         return s
 
-    def listen(self, socket):
-        socket.listen(int(self.max_conn))
+    def read_tcp(self, tcp_socket):
+        client_socket, client_socket_info = tcp_socket.accept()
 
-        while 1:
-            client_socket, client_socket_info = socket.accept()
+        payload = client_socket.recv(1024)     
+        client_socket.send(payload)
 
-            payload = client_socket.recv(1024)
-             
-            client_socket.send(payload)
-
-            client_socket.close()
+        client_socket.close()
