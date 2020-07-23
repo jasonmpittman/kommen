@@ -6,18 +6,19 @@ __author__ = "Jason M. Pittman"
 __copyright__ = "Copyright 2020"
 __credits__ = ["Jason M. Pittman"]
 __license__ = "GPLv3"
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __maintainer__ = "Jason M. Pittman"
 __email__ = "jpittman@highpoint.edu"
 __status__ = "Development"
 
 import sys
 import socket
+from threading import Thread
 from select import select
 import configparser
 
 from listeners import tcp_server
-from listeners import udp_server
+#from listeners import udp_server
 
 class Kommen:
     def __init__(self, config_file):
@@ -29,33 +30,25 @@ class Kommen:
         self.max_conn = config['socket']['max_conn']
 
     def run(self):
-        # setup tcp server
-        svr_tcp = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
-        tcp_socket = svr_tcp.bind()
-        tcp_socket.listen()
+        # svr_tcp = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
+        # tcp_socket = svr_tcp.bind_socket()
+        
+        # threads = []
 
-        # setup udp server
-        svr_udp = udp_server.UdpServer(self.ip_address, self.port)
-        udp_socket = svr_udp.bind()
-
-        sockets = [tcp_socket, udp_socket]
-
-        # select which server to route incoming traffic to based
-        while True:
-            inputready, outputready, exceptready = select(sockets, [], [])
-
-            for socket in sockets:
-                if socket == tcp_socket:
-                    svr_tcp.read_tcp(socket)
-                elif socket == udp_socket:
-                    svr_udp.read_udp(socket)
-                else:
-                    print("Unknown socket")
-
+        # while True:
+        #     tcp_socket.listen(int(svr_tcp.max_conn))
+        #     client_socket = svr_tcp.accept_socket(tcp_socket)
+            
+        #     while True:
+        #         new_client = Thread(target=svr_tcp.read_socket(client_socket))
+        #         new_client.start()
+        #         threads.append(new_client)
+        server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
+        server.run_server()
 
 if __name__ == "__main__":
     kommen = Kommen(sys.argv[1])
     try:
         kommen.run()
-    except:
-        print("Error creating thread for socket")
+    except Exception as e:
+        print("Error running server: " + str(e))
