@@ -21,6 +21,7 @@ class UdpServer:
 
     def bind(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setblocking(0)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock = (self.ip_address, int(self.port))
         s.bind(sock)
@@ -28,8 +29,16 @@ class UdpServer:
         return s
 
     def read_udp(self, udp_socket):
+        try:
             payload, client_socket = udp_socket.recvfrom(1024)
-            udp_socket.sendto(payload, client_socket) 
+            sent = udp_socket.sendto(payload, client_socket) 
+        except socket.error as e:
+            print('Exception occured in reading udp socket: ' + str(e))
 
+    def close_socket(self, udp_socket):
+        try:
+            udp_socket.close()
+        except socket.error as e:
+            print('Error closing udp socket: ' + str(e))
 
         
