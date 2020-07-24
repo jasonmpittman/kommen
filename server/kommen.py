@@ -13,12 +13,13 @@ __status__ = "Development"
 
 import sys
 import socket
-from threading import Thread
-from select import select
+#from threading import Thread
+#from select import select
 import configparser
 
 from listeners import tcp_server
 #from listeners import udp_server
+from handlers import cryptography_handler as crypto
 
 class Kommen:
     def __init__(self, config_file):
@@ -43,6 +44,10 @@ class Kommen:
         #         new_client = Thread(target=svr_tcp.read_socket(client_socket))
         #         new_client.start()
         #         threads.append(new_client)
+        c = crypto.CryptographyHandler()
+        if not c.do_keys_exist():
+            c.create_keys()
+
         server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
         server.run_server()
 
