@@ -12,7 +12,8 @@ __email__ = "jpittman@highpoint.edu"
 __status__ = "Development"
 __dependecies__ = "PyCryptodome"
 
-import pathlib
+import pathlib #, array, time
+#import base64, hmac, hashlib
 from Crypto.PublicKey import RSA
 
 class CryptographyHandler:
@@ -51,7 +52,8 @@ class CryptographyHandler:
         pathlib.Path.unlink(public_key)
 
     def sign_key(self, key):
-        keys = []
+        ''' sign with secret, verify with public'''
+        keys = [] #placeholder
 
         return keys
 
