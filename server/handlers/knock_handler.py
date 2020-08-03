@@ -11,6 +11,10 @@ __maintainer__ = "Jason M. Pittman"
 __email__ = "jpittman@highpoint.edu"
 __status__ = "Development"
 
+'''
+A knock is a TOTP instance based on the unique client 
+'''
+
 class KnockHandler:
 
     def verify_knock(self, knock):

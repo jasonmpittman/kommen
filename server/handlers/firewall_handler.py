@@ -10,3 +10,17 @@ __version__ = "0.2.0"
 __maintainer__ = "Jason M. Pittman"
 __email__ = "jpittman@highpoint.edu"
 __status__ = "Development"
+__dependecies__ = "Python-IPtables"
+
+import iptc
+
+class FirewallHandler():
+
+    def get_chains():
+        
+    
+    def insert_chain():
+
+    
+    def remove_chain():
+        
