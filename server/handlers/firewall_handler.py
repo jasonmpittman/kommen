@@ -18,10 +18,20 @@ class FirewallHandler():
 
     def get_chains(self):
         table = iptc.Table(iptc.Table.FILTER)
-    
-        return table
 
-    #def insert_chain():
+        for chain in table.chains:
+            print("Chain ", chain.name)
 
+        #return table.chains
+
+    def insert_chain(self, chain):
+        table = iptc.Table(iptc.Table.FILTER)
+
+    def add_rule(self, chain, rule):
+        return 0
     
     #def remove_chain():
+
+
+fw = FirewallHandler()
+fw.get_chains()
