@@ -12,15 +12,17 @@ __email__ = "jpittman@highpoint.edu"
 __status__ = "Development"
 __dependecies__ = "PyCryptodome"
 
-import pathlib #, array, time
-#import base64, hmac, hashlib
+import pathlib
 from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5 as Cipher_PKCS1_v1_5
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA512
 
 class CryptographyHandler:
 
     def do_keys_exist(self):
         exists = False
-        secret_key = pathlib.Path('secret.pem')
+        secret_key = pathlib.Path('private.pem')
         public_key = pathlib.Path('public.pem')
 
         if secret_key.exists() and public_key.exists():
@@ -34,7 +36,7 @@ class CryptographyHandler:
         public_key = key.publickey().export_key()
 
         try:
-            with open('secret.pem', 'wb') as secret_file:
+            with open('private.pem', 'wb') as secret_file:
                 secret_file.write(secret_key)
             
             with open('public.pem', 'wb') as public_file:
@@ -45,19 +47,50 @@ class CryptographyHandler:
         
 
     def remove_keys(self):
-        secret_key = pathlib.Path('secret.pem')
+        secret_key = pathlib.Path('private.pem')
         public_key = pathlib.Path('public.pem')
 
         pathlib.Path.unlink(secret_key)
         pathlib.Path.unlink(public_key)
 
-    def sign_key(self, key):
-        ''' sign with secret, verify with public'''
-        keys = [] #placeholder
+    def sign(self, obj, privkey):
+        ''' sign with private, verify with public'''
+        try:
+            with open(privkey, 'r') as k:
+                key = RSA.importKey(k.read())
+        except IOError as e:
+            print('Error loading private key: ' + str(e))
 
-        return keys
+        hash = SHA512.new(obj)
 
-    def is_valid_key(self, key):
-        is_valid = False
+        signer = PKCS1_v1_5.new(key)
+        signature = signer.sign(hash)
 
-        return is_valid
+        return signature
+
+    def is_sign_valid(self, obj, signature, pubkey): #this needs reviewed
+        with open('pubkey.pem', 'rb') as f:
+            key = RSA.importKey(f.read())
+        
+        hasher = SHA512.new(obj)
+        verifier = PKCS1_v1_5.new(key)
+        
+        if verifier.verify(hasher, signature):
+            return True
+        else:
+            return False
+
+    def encrypt(self, pubkey, plaintext): #pubkey is a filepath to public key .pem file
+        with open(pubkey, "rb") as k:
+            key = RSA.importKey(k.read())
+
+        cipher = Cipher_PKCS1_v1_5.new(key)
+        return cipher.encrypt(plaintext.encode())
+
+    
+    def decrypt(self, privkey, ciphertext):
+        with open(privkey, "rb") as k: #privkey is a filepath to private key .pem file
+            key = RSA.importKey(k.read())
+
+        decipher = Cipher_PKCS1_v1_5.new(key)
+        return decipher.decrypt(ciphertext, None).decode()

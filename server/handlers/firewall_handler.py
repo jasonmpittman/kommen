@@ -16,11 +16,12 @@ import iptc
 
 class FirewallHandler():
 
-    def get_chains():
-        
+    def get_chains(self):
+        table = iptc.Table(iptc.Table.FILTER)
     
-    def insert_chain():
+        return table
+
+    #def insert_chain():
 
     
-    def remove_chain():
-        
+    #def remove_chain():
