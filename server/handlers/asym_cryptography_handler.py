@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Cryptographic methods to support secure """
+"""Asymmetric Cryptographic methods to support secure """
 
 __author__ = "Jason M. Pittman"
 __copyright__ = "Copyright 2020"
@@ -18,9 +18,10 @@ from Crypto.Cipher import PKCS1_v1_5 as Cipher_PKCS1_v1_5
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA512
 
-class CryptographyHandler:
+class AsymmetricCryptographyHandler:
 
     def do_keys_exist(self):
+        """Checks for existence of server key pair and returns Boolean""" # use keys dir
         exists = False
         secret_key = pathlib.Path('private.pem')
         public_key = pathlib.Path('public.pem')
@@ -31,6 +32,7 @@ class CryptographyHandler:
         return exists
 
     def create_keys(self):
+        """Creates a 2048 bit RSA key pair and outputs as private.pem and public.pem files""" # drop files in keys dir
         key = RSA.generate(2048)
         secret_key = key.export_key()
         public_key = key.publickey().export_key()
@@ -46,15 +48,16 @@ class CryptographyHandler:
             print('Error writing key to file: ' + str(e))
         
 
-    def remove_keys(self):
+    def remove_keys(self, keypair): #keypair is a tuple
+        """Deletes indicated key pair""" # use keys dir
         secret_key = pathlib.Path('private.pem')
         public_key = pathlib.Path('public.pem')
 
         pathlib.Path.unlink(secret_key)
         pathlib.Path.unlink(public_key)
 
-    def sign(self, obj, privkey):
-        ''' sign with private, verify with public'''
+    def sign(self, obj, privkey): # sign with private, verify with public
+        """ """
         try:
             with open(privkey, 'r') as k:
                 key = RSA.importKey(k.read())
@@ -69,6 +72,7 @@ class CryptographyHandler:
         return signature
 
     def is_sign_valid(self, obj, signature, pubkey): #this needs reviewed
+        """Checks if provided signature is cryptographically valid and returns Boolean"""
         with open('pubkey.pem', 'rb') as f:
             key = RSA.importKey(f.read())
         
@@ -86,6 +90,7 @@ class CryptographyHandler:
 
         cipher = Cipher_PKCS1_v1_5.new(key)
         return cipher.encrypt(plaintext.encode())
+
 
     
     def decrypt(self, privkey, ciphertext):

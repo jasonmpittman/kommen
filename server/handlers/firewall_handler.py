@@ -15,14 +15,33 @@ __dependecies__ = "Python-IPtables"
 import iptc
 
 class FirewallHandler():
+    _table = ''
 
-    def get_chains(self):
-        table = iptc.Table(iptc.Table.FILTER)
+    def __init__(self):
+        self._table = iptc.Table(iptc.Table.FILTER)
 
-        for chain in table.chains:
+    def get_chains(self): #just a test method to test interface to iptables
+
+        for chain in self._table.chains:
             print("Chain ", chain.name)
 
-        #return table.chains
+
+    def are_default_rules_present(self): #checks for the default rules necessary for port knocking; returns Boolean.
+        return 0
+
+    def set_default_rules(self): #sets default rules necessary for port knocking
+        #block everything
+        return 0
+
+    def are_knock_chains_present(self): #checks for our knock chains; only way to do this is to try and create them?
+        knock0 = iptc.Chain(self._table, "KNOCK1") #iptc_is_chain
+        
+        print(knock0.name)
+        
+        if knock0:
+            return True
+        else:
+            return False
 
     def insert_chain(self, chain):
         table = iptc.Table(iptc.Table.FILTER)
@@ -34,4 +53,6 @@ class FirewallHandler():
 
 
 fw = FirewallHandler()
-fw.get_chains()
+#fw.get_chains()
+boolean = fw.are_knock_chains_present()
+print(boolean)
