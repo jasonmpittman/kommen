@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-"""Asymmetric Cryptographic methods to support secure """
-
 __author__ = "Jason M. Pittman"
 __copyright__ = "Copyright 2020"
 __credits__ = ["Jason M. Pittman"]
@@ -19,12 +17,33 @@ from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA512
 
 class AsymmetricCryptographyHandler:
+    """
+    Asymmetric Cryptographic methods to handle keys and cryptograhic operations
+    
+    Attributes
+    ----------
 
-    def do_keys_exist(self):
-        """Checks for existence of server key pair and returns Boolean""" # use keys dir
+    """
+
+    def do_keys_exist(self, keypair=None):
+        """Checks for existence of key pair 
+        
+        Args:
+            keypair: 
+
+        Returns:
+            bool: True if exists, False otherwise
+        
+        """
+
         exists = False
-        secret_key = pathlib.Path('private.pem')
-        public_key = pathlib.Path('public.pem')
+        
+        if keypair is not None: 
+            secret_key = pathlib.Path(r'keys/' + keypair[0]) #this needs tested...keypair might need a str() cast
+            public_key = pathlib.Path(r'keys/' + keypair[1])
+        else:
+            secret_key = pathlib.Path(r'keys/secret.pem')
+            public_key = pathlib.Path(r'keys/public.pem')
 
         if secret_key.exists() and public_key.exists():
             exists = True
@@ -32,7 +51,14 @@ class AsymmetricCryptographyHandler:
         return exists
 
     def create_keys(self):
-        """Creates a 2048 bit RSA key pair and outputs as private.pem and public.pem files""" # drop files in keys dir
+        """Creates a 2048 bit RSA key pair and outputs as private.pem and public.pem files
+        
+        Args:
+
+
+        Returns:
+        
+        """ # drop files in keys dir
         key = RSA.generate(2048)
         secret_key = key.export_key()
         public_key = key.publickey().export_key()
@@ -49,7 +75,14 @@ class AsymmetricCryptographyHandler:
         
 
     def remove_keys(self, keypair): #keypair is a tuple
-        """Deletes indicated key pair""" # use keys dir
+        """Deletes indicated key pair
+        
+        Args:
+
+        Returns:
+
+        
+        """ # use keys dir
         secret_key = pathlib.Path('private.pem')
         public_key = pathlib.Path('public.pem')
 

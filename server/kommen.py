@@ -19,7 +19,7 @@ import configparser
 
 from listeners import tcp_server
 #from listeners import udp_server
-from handlers import cryptography_handler as crypto
+from handlers import asym_cryptography_handler as asym_crypto
 from handlers import registration_handler as registration
 
 class Kommen:
@@ -33,12 +33,14 @@ class Kommen:
 
     def run(self):
 
-        c = crypto.CryptographyHandler()
-        if not c.do_keys_exist():
-            c.create_keys()
+        c = asym_crypto.AsymmetricCryptographyHandler()
+        print(c.do_keys_exist())
+        
+        #if not c.do_keys_exist():
+        #    c.create_keys()
 
-                server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
-        server.run_server()
+        #server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
+        #server.run_server()
 
 if __name__ == "__main__":
     kommen = Kommen(sys.argv[1])
