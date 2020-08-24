@@ -18,10 +18,19 @@ from Crypto.Hash import SHA512
 
 class AsymmetricCryptographyHandler:
     """
+
     Asymmetric Cryptographic methods to handle keys and cryptograhic operations
     
-    Attributes
-    ----------
+    Attributes:
+
+    Functions:
+        do_keys_exist() -- check if a key pair exists 
+        create_keys() -- create a new RSA key pair in local keystore
+        remove_keys() -- remove keys from local keystore
+        sign() -- use private key to sign an object (generate checksum)
+        is_sign_valid() -- check if provided signature is cryprographically valid
+        encrypt() -- encrypt object using a public key
+        decrypt() -- decrypto object using a private key
 
     """
 
@@ -29,10 +38,11 @@ class AsymmetricCryptographyHandler:
         """Checks for existence of key pair 
         
         Args:
-            keypair: 
+            keypair (None): checks for the server key pair
+            keypair (tuple): checks for the indicated key pair 
 
         Returns:
-            bool: True if exists, False otherwise
+            exists (bool): True if exists, False otherwise
         
         """
 
@@ -57,6 +67,7 @@ class AsymmetricCryptographyHandler:
 
 
         Returns:
+            is_created (bool): True for success, False otherwise.
         
         """ # drop files in keys dir
         key = RSA.generate(2048)
@@ -78,9 +89,10 @@ class AsymmetricCryptographyHandler:
         """Deletes indicated key pair
         
         Args:
+            keypair (tuple): 
 
         Returns:
-
+            is_removed (bool): The return value. True for success, False otherwise.
         
         """ # use keys dir
         secret_key = pathlib.Path('private.pem')
@@ -90,7 +102,16 @@ class AsymmetricCryptographyHandler:
         pathlib.Path.unlink(public_key)
 
     def sign(self, obj, privkey): # sign with private, verify with public
-        """ """
+        """Creates cryptographic signature (checksum) of indicated object.
+        
+        Args:
+            obj: Object to be signed.
+            privkey: The private key to be used in generating the signature.
+
+        Returns:
+            is_signed (bool): The return value. True for success, False otherwise.
+        
+        """ 
         try:
             with open(privkey, 'r') as k:
                 key = RSA.importKey(k.read())
@@ -105,7 +126,17 @@ class AsymmetricCryptographyHandler:
         return signature
 
     def is_sign_valid(self, obj, signature, pubkey): #this needs reviewed
-        """Checks if provided signature is cryptographically valid and returns Boolean"""
+        """Checks if provided signature is cryptographically valid and returns Boolean
+        
+        Args:
+            obj: any object previously signed and to be validated
+            signature (str): the signature string to be validated
+            pubkey (str): a filepath to the public key .pem to be used in validating a signature
+
+        Returns:
+            is_valid (bool): True for valid, False otherwise.
+        
+        """
         with open('pubkey.pem', 'rb') as f:
             key = RSA.importKey(f.read())
         
@@ -117,16 +148,35 @@ class AsymmetricCryptographyHandler:
         else:
             return False
 
-    def encrypt(self, pubkey, plaintext): #pubkey is a filepath to public key .pem file
+    def encrypt(self, pubkey, plaintext):
+        """Encrypts provided plaintext and returns ciphertext
+        
+        Args:
+            pubkey (str): a filepath to a public key .pem file
+            plaintext (str): the plaintext to be encrypted
+
+        Returns:
+            cipher.encrypt(): encrypted plaintext
+        
+        """
+        
         with open(pubkey, "rb") as k:
             key = RSA.importKey(k.read())
 
         cipher = Cipher_PKCS1_v1_5.new(key)
         return cipher.encrypt(plaintext.encode())
-
-
     
     def decrypt(self, privkey, ciphertext):
+        """Decrypts provided ciphertext and returns plaintext
+        
+        Args:
+            privkey (str): a filepath to a secret key .pem file
+            ciphertext (str): the ciphertext to be decrypted
+
+        Returns:
+            decipher.decrypt(): decrypted ciphertext
+        
+        """
         with open(privkey, "rb") as k: #privkey is a filepath to private key .pem file
             key = RSA.importKey(k.read())
 
