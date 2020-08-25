@@ -36,8 +36,10 @@ class Kommen:
         c = asym_crypto.AsymmetricCryptographyHandler()
         print(c.do_keys_exist())
         
-        #if not c.do_keys_exist():
-        #    c.create_keys()
+        if not c.do_keys_exist():
+            result = c.create_keys('clientA')
+        
+        print(result)
 
         #server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
         #server.run_server()
