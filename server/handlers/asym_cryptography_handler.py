@@ -34,12 +34,12 @@ class AsymmetricCryptographyHandler:
 
     """
 
-    def do_keys_exist(self, keypair=None):
+    def do_keys_exist(self, keypair=None): # Finished and tested 8/25
         """Checks for existence of key pair 
         
         Args:
-            keypair (None): checks for the server key pair
-            keypair (tuple): checks for the indicated key pair 
+            keypair (None): default value which causes a check for the server key pair
+            keypair (tuple): passed value which causes a check for the indicated client key pair 
 
         Returns:
             exists (bool): True if exists, False otherwise
@@ -49,7 +49,7 @@ class AsymmetricCryptographyHandler:
         exists = False
         
         if keypair is not None: 
-            secret_key = pathlib.Path(r'keys/' + keypair[0]) #this needs tested...keypair might need a str() cast
+            secret_key = pathlib.Path(r'keys/' + keypair[0])
             public_key = pathlib.Path(r'keys/' + keypair[1])
         else:
             secret_key = pathlib.Path(r'keys/secret.pem')
@@ -60,29 +60,41 @@ class AsymmetricCryptographyHandler:
 
         return exists
 
-    def create_keys(self):
+    def create_keys(self, client=None): # Finished and tested 8/25
         """Creates a 2048 bit RSA key pair and outputs as private.pem and public.pem files
         
         Args:
-
+            client (None): default value which is handled as the server
+            client (str): passed value which is used as unique client identifier (maybe later we use index from keys.db)
 
         Returns:
             is_created (bool): True for success, False otherwise.
         
-        """ # drop files in keys dir
+        """ 
+        is_created = False
         key = RSA.generate(2048)
         secret_key = key.export_key()
         public_key = key.publickey().export_key()
 
         try:
-            with open('private.pem', 'wb') as secret_file:
-                secret_file.write(secret_key)
+            if client is not None:
+                with open(pathlib.Path(r'keys/' + client + '_private.pem'), 'wb') as secret_file:
+                    secret_file.write(secret_key)
             
-            with open('public.pem', 'wb') as public_file:
-                public_file.write(public_key)
-
+                with open(pathlib.Path(r'keys/' + client +  '_public.pem'), 'wb') as public_file:
+                    public_file.write(public_key)
+            else:
+                with open(pathlib.Path(r'keys/' 'private.pem'), 'wb') as secret_file:
+                    secret_file.write(secret_key)
+            
+                with open(pathlib.Path(r'keys/' 'public.pem'), 'wb') as public_file:
+                    public_file.write(public_key)
         except Exception as e:
-            print('Error writing key to file: ' + str(e))
+            print('Error writing key to file: ' + str(e)) #add logging
+        else:
+            is_created = True
+
+        return is_created
         
 
     def remove_keys(self, keypair): #keypair is a tuple
