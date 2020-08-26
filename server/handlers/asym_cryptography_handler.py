@@ -15,6 +15,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_PKCS1_v1_5
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA512
+from base64 import b64encode, b64decode
 
 class AsymmetricCryptographyHandler:
     """
@@ -49,13 +50,13 @@ class AsymmetricCryptographyHandler:
         exists = False
         
         if keypair is not None: 
-            secret_key = pathlib.Path(r'keys/' + keypair[0])
+            private_key = pathlib.Path(r'keys/' + keypair[0])
             public_key = pathlib.Path(r'keys/' + keypair[1])
         else:
-            secret_key = pathlib.Path(r'keys/secret.pem')
+            private_key = pathlib.Path(r'keys/private.pem')
             public_key = pathlib.Path(r'keys/public.pem')
 
-        if secret_key.exists() and public_key.exists():
+        if private_key.exists() and public_key.exists():
             exists = True
 
         return exists
@@ -64,7 +65,7 @@ class AsymmetricCryptographyHandler:
         """Creates a 2048 bit RSA key pair and outputs as private.pem and public.pem files
         
         Args:
-            client (None): default value which is handled as the server
+            client (None): default value which is handled as the server key pair
             client (str): passed value which is used as unique client identifier (maybe later we use index from keys.db)
 
         Returns:
@@ -73,19 +74,19 @@ class AsymmetricCryptographyHandler:
         """ 
         is_created = False
         key = RSA.generate(2048)
-        secret_key = key.export_key()
+        private_key = key.export_key()
         public_key = key.publickey().export_key()
 
         try:
             if client is not None:
-                with open(pathlib.Path(r'keys/' + client + '_private.pem'), 'wb') as secret_file:
-                    secret_file.write(secret_key)
+                with open(pathlib.Path(r'keys/' + client + '_private.pem'), 'wb') as private_file:
+                    private_file.write(private_key)
             
                 with open(pathlib.Path(r'keys/' + client +  '_public.pem'), 'wb') as public_file:
                     public_file.write(public_key)
             else:
-                with open(pathlib.Path(r'keys/' 'private.pem'), 'wb') as secret_file:
-                    secret_file.write(secret_key)
+                with open(pathlib.Path(r'keys/' 'private.pem'), 'wb') as private_file:
+                    private_file.write(private_key)
             
                 with open(pathlib.Path(r'keys/' 'public.pem'), 'wb') as public_file:
                     public_file.write(public_key)
@@ -95,23 +96,36 @@ class AsymmetricCryptographyHandler:
             is_created = True
 
         return is_created
-        
 
-    def remove_keys(self, keypair): #keypair is a tuple
+    def remove_keys(self, keypair=None): # Finished and tested 8/26
         """Deletes indicated key pair
         
         Args:
-            keypair (tuple): 
+            keypair (None): default value which is handled as the server key pair
+            keypair (tuple): passed value which is used as unique client identifier
 
         Returns:
             is_removed (bool): The return value. True for success, False otherwise.
         
-        """ # use keys dir
-        secret_key = pathlib.Path('private.pem')
-        public_key = pathlib.Path('public.pem')
+        """ 
+        is_removed = False
 
-        pathlib.Path.unlink(secret_key)
-        pathlib.Path.unlink(public_key)
+        if keypair is not None:
+            private_key = pathlib.Path(r'keys/' + keypair[0])
+            public_key = pathlib.Path(r'keys/' + keypair[1])
+        else:
+            private_key = pathlib.Path(r'keys/private.pem')
+            public_key = pathlib.Path(r'keys/public.pem')
+
+        try:
+            pathlib.Path.unlink(private_key)
+            pathlib.Path.unlink(public_key)
+        except Exception as e:
+            print('Error writing key to file: ' + str(e)) #add logging
+        else: 
+            is_removed = True
+        
+        return is_removed
 
     def sign(self, obj, privkey): # sign with private, verify with public
         """Creates cryptographic signature (checksum) of indicated object.
@@ -160,36 +174,50 @@ class AsymmetricCryptographyHandler:
         else:
             return False
 
-    def encrypt(self, pubkey, plaintext):
+    def encrypt(self, plaintext, pubkey=None): # Finished and tested 8/26
         """Encrypts provided plaintext and returns ciphertext
         
         Args:
-            pubkey (str): a filepath to a public key .pem file
             plaintext (str): the plaintext to be encrypted
-
+            pubkey (None): default value which indicates server public key
+            pubkey (str): a filepath to a public key .pem file
+            
         Returns:
             cipher.encrypt(): encrypted plaintext
         
         """
-        
-        with open(pubkey, "rb") as k:
-            key = RSA.importKey(k.read())
+        if pubkey is not None:
+            public_key = pathlib.Path(r'keys/' + pubkey)
+        else:
+            public_key = pathlib.Path(r'keys/public.pem')
 
-        cipher = Cipher_PKCS1_v1_5.new(key)
-        return cipher.encrypt(plaintext.encode())
+        try:
+            with open(public_key, "rb") as k:
+                key = RSA.importKey(k.read())
+
+            cipher = Cipher_PKCS1_v1_5.new(key)
+            return cipher.encrypt(plaintext.encode()) # I don't think I should do this here...
+        except Exception as e:
+            print('Error writing key to file: ' + str(e)) #add logging
     
-    def decrypt(self, privkey, ciphertext):
+    def decrypt(self, ciphertext, privkey=None): # Finished and tested 8/26
         """Decrypts provided ciphertext and returns plaintext
         
         Args:
-            privkey (str): a filepath to a secret key .pem file
             ciphertext (str): the ciphertext to be decrypted
+            privkey (None): default value which indicates server private key
+            privkey (str): a filepath to a private key .pem file
 
         Returns:
             decipher.decrypt(): decrypted ciphertext
         
         """
-        with open(privkey, "rb") as k: #privkey is a filepath to private key .pem file
+        if privkey is not None:
+            private_key = pathlib.Path(r'keys/' + privkey)
+        else:
+            private_key = pathlib.Path(r'keys/private.pem')
+
+        with open(private_key, "rb") as k: #privkey is a filepath to private key .pem file
             key = RSA.importKey(k.read())
 
         decipher = Cipher_PKCS1_v1_5.new(key)
