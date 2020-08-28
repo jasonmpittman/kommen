@@ -127,52 +127,69 @@ class AsymmetricCryptographyHandler:
         
         return is_removed
 
-    def sign(self, obj, privkey): # sign with private, verify with public
+    def sign(self, obj, privkey=None): # Finished and tested 8/26
         """Creates cryptographic signature (checksum) of indicated object.
         
         Args:
-            obj: Object to be signed.
-            privkey: The private key to be used in generating the signature.
-
+            obj (str): object to be signed as bytearray
+            privkey (none): default value which is handled as the server private key to be used in generating the signature.
+            private (str): passed value indicating a client private key .pem file
+ 
         Returns:
-            is_signed (bool): The return value. True for success, False otherwise.
+            signature (str): The return value is a cryptographic signature 
         
-        """ 
+        """
+        if privkey is not None:
+            private_key = pathlib.Path(r'keys/' + privkey)
+        else:
+            private_key = pathlib.Path(r'keys/private.pem')
+        
         try:
-            with open(privkey, 'r') as k:
+            with open(private_key, 'r') as k:
                 key = RSA.importKey(k.read())
+            
+            hash = SHA512.new(obj)
+
+            signer = PKCS1_v1_5.new(key)
+            signature = signer.sign(hash)
+
+            return signature
         except IOError as e:
-            print('Error loading private key: ' + str(e))
+            print('Error loading private key: ' + str(e)) #add logging
 
-        hash = SHA512.new(obj)
-
-        signer = PKCS1_v1_5.new(key)
-        signature = signer.sign(hash)
-
-        return signature
-
-    def is_sign_valid(self, obj, signature, pubkey): #this needs reviewed
+    def is_sign_valid(self, obj, signature, pubkey=None): # Finished and tested 8/26
         """Checks if provided signature is cryptographically valid and returns Boolean
         
         Args:
             obj: any object previously signed and to be validated
             signature (str): the signature string to be validated
-            pubkey (str): a filepath to the public key .pem to be used in validating a signature
+            pubkey (None): default value which is handled as the server public key to be used in validating the signature
+            pubkey (str): passed value indicated the client public key .pem to be used in validating a signature
 
         Returns:
             is_valid (bool): True for valid, False otherwise.
         
         """
-        with open('pubkey.pem', 'rb') as f:
-            key = RSA.importKey(f.read())
-        
-        hasher = SHA512.new(obj)
-        verifier = PKCS1_v1_5.new(key)
-        
-        if verifier.verify(hasher, signature):
-            return True
+        is_valid = False
+
+        if pubkey is not None:
+            public_key = pathlib.Path(r'keys/' + pubkey)
         else:
-            return False
+            public_key = pathlib.Path(r'keys/public.pem')
+
+        try:
+            with open(public_key, 'rb') as f:
+                key = RSA.importKey(f.read())
+        
+            hasher = SHA512.new(obj)
+            verifier = PKCS1_v1_5.new(key)
+        
+            if verifier.verify(hasher, signature):
+                is_valid = True
+        except Exception as e:
+            print('Error loading private key: ' + str(e)) #add logging
+        else:
+            return is_valid
 
     def encrypt(self, plaintext, pubkey=None): # Finished and tested 8/26
         """Encrypts provided plaintext and returns ciphertext
@@ -180,7 +197,7 @@ class AsymmetricCryptographyHandler:
         Args:
             plaintext (str): the plaintext to be encrypted
             pubkey (None): default value which indicates server public key
-            pubkey (str): a filepath to a public key .pem file
+            pubkey (str): passed value indicating a client public key .pem file
             
         Returns:
             cipher.encrypt(): encrypted plaintext
@@ -217,8 +234,11 @@ class AsymmetricCryptographyHandler:
         else:
             private_key = pathlib.Path(r'keys/private.pem')
 
-        with open(private_key, "rb") as k: #privkey is a filepath to private key .pem file
-            key = RSA.importKey(k.read())
+        try:
+            with open(private_key, "rb") as k: #privkey is a filepath to private key .pem file
+                key = RSA.importKey(k.read())
 
-        decipher = Cipher_PKCS1_v1_5.new(key)
-        return decipher.decrypt(ciphertext, None).decode()
+            decipher = Cipher_PKCS1_v1_5.new(key)
+            return decipher.decrypt(ciphertext, None).decode()
+        except Exception as e:
+            print('Error writing key to file: ' + str(e)) #add logging
