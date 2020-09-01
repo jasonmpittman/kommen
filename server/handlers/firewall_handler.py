@@ -21,10 +21,21 @@ class FirewallHandler():
         self._table = iptc.Table(iptc.Table.FILTER)
 
     def get_chains(self): #just a test method to test interface to iptables
+        """Queries local IPTables for list of active, non-default chains
+        
+        Args: 
+
+        Returns:
+            exists (bool): The return value is the collection of active, non-default chains
+        
+        """
+        chains = [ ]
 
         for chain in self._table.chains:
-            print("Chain ", chain.name)
+            chains.append(chain.name)
+            #print("Chain ", chain.name)
 
+        return chains
 
     def are_default_rules_present(self): #checks for the default rules necessary for port knocking; returns Boolean.
         return 0
@@ -50,9 +61,3 @@ class FirewallHandler():
         return 0
     
     #def remove_chain():
-
-
-fw = FirewallHandler()
-#fw.get_chains()
-boolean = fw.are_knock_chains_present()
-print(boolean)
