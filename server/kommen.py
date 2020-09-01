@@ -63,6 +63,8 @@ class Kommen:
         chains = fw.get_chains()
         for chain in chains:
             print(chain)
+        
+        fw.get_rules_in_chain(chain[1])
 
         #server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
         #server.run_server()
