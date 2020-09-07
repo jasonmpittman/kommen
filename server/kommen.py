@@ -19,7 +19,7 @@ import configparser
 
 from listeners import tcp_server
 #from listeners import udp_server
-from handlers import asym_cryptography_handler as asym_crypto
+#from handlers import asym_cryptography_handler as asym_crypto
 from handlers import registration_handler as registration
 from handlers import firewall_handler as firewall
 
@@ -59,14 +59,16 @@ class Kommen:
 
         # firewall testing
 
-        fw = firewall.FirewallHandler()
-        chains = fw.get_chains()
+        fw = firewall.FirewallHandler() #test 8
+        #chains = fw.get_chains()
         #for chain in chains:
             #print(chain)
         
-        rules = fw.get_rules_in_chain(chains[1])
-        for rule in rules:
-            print(rule) # need to check about setting a rule name or desc
+        #rules = fw.get_rules_in_chain(chains[1]) #test 8
+        #for rule in rules:
+            #print(rule) # need to check about setting a rule name or desc
+        
+        fw.set_default_rules() #test 9
 
 
         #server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
