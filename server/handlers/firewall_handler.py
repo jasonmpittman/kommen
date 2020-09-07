@@ -73,19 +73,28 @@ class FirewallHandler():
         
         """
         #get list of active rules in INPUT chain
-        rules = self.get_rules_in_chain('INPUT')
+        #rules = self.get_rules_in_chain('INPUT')
         
-        if rules[0]:
-            is_set = False
-        else:
-            #set rules
-            try:
-                print('hi')
-                is_set = True
-            except Exception as ex:
-                print(str(ex)) # need logging here 
+        rule = iptc.Rule()
+        rule.src = "127.0.0.1"
+        rule.target = rule.create_target("ACCEPT")
+        match = rule.create_match("comment")
+        match.comment = "default pk rule to allow loopback traffic"
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+        chain.insert_rule(rule)
 
-        return is_set
+
+        # if rules[0]:
+        #     is_set = False
+        # else:
+        #     #set rules
+        #     try:
+        #         print('hi')
+        #         is_set = True
+        #     except Exception as ex:
+        #         print(str(ex)) # need logging here 
+
+        # return is_set
 
     def are_knock_chains_present(self): #checks for our knock chains; only way to do this is to try and create them?
         knock0 = iptc.Chain(self._table, "KNOCK1") #iptc_is_chain
