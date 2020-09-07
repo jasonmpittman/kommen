@@ -75,14 +75,20 @@ class FirewallHandler():
         #get list of active rules in INPUT chain
         #rules = self.get_rules_in_chain('INPUT')
         
-        rule = iptc.Rule()
-        rule.src = "127.0.0.1"
-        rule.target = rule.create_target("ACCEPT")
-        match = rule.create_match("comment")
-        match.comment = "default pk rule to allow loopback traffic"
+        rule_loopback = iptc.Rule()
+        rule_loopback.src = "127.0.0.1"
+        rule_loopback.target = rule_loopback.create_target("ACCEPT")
+        match = rule_loopback.create_match("comment")
+        match.comment = "default pk rule to accept loopback traffic"
         chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
-        chain.insert_rule(rule)
+        chain.insert_rule(rule_loopback)
 
+        rule_knock = iptc.Rule()
+        rule_knock.target = rule_knock.create_target("ACCEPT")
+        match = rule_knock.create_match("comment")
+        match.comment = "default pk rule to accept knock traffic" 
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+        chain.insert_rule(rule_knock)
 
         # if rules[0]:
         #     is_set = False
