@@ -62,8 +62,29 @@ class FirewallHandler():
         return 0
 
     def set_default_rules(self): #sets default rules necessary for port knocking
-        #block everything
-        return 0
+        #pass knock traffic: iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+        #pass loopback traffic: iptables -A INPUT -s 127.0.0.0/8 -j ACCEPT
+        """Sets a list of default rules common to all implementations
+        
+        Args: 
+
+        Returns:
+            is_set (bool): The return value is boolean; True for we set the rules and False for we failed to set the rules.
+        
+        """
+        #get list of active rules in INPUT chain
+        
+        if rules[0]:
+            is_set = False
+        else:
+            #set rules
+            try:
+                print('hi')
+                is_set = True
+            except Exception as ex:
+                print(str(ex)) # need logging here 
+
+        return is_set
 
     def are_knock_chains_present(self): #checks for our knock chains; only way to do this is to try and create them?
         knock0 = iptc.Chain(self._table, "KNOCK1") #iptc_is_chain
