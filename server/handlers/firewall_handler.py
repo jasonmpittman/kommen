@@ -52,7 +52,7 @@ class FirewallHandler():
             for active_chain in self._table.chains:
                 if active_chain.name == chain:
                     for rule in active_chain.rules:
-                        rules.append(rule)
+                        rules.append(rule.name)
         except Exception as ex:
             print(str(ex)) # add logging
         
@@ -73,6 +73,7 @@ class FirewallHandler():
         
         """
         #get list of active rules in INPUT chain
+        rules = self.get_rules_in_chain('INPUT')
         
         if rules[0]:
             is_set = False
