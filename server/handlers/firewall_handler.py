@@ -101,11 +101,14 @@ class FirewallHandler():
         Returns:
 
         """
+        #print(services)
+
         config = configparser.ConfigParser()
         config.read(services)
 
-        print(config.sections())
-        #for service in services:
+        #print(config.sections())
+        for section in config.sections():
+            print(section[0])
         #    rule = iptc.Rule()
 
         #    rule.target = rule.create_target("ACCEPT")
