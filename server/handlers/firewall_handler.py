@@ -13,6 +13,7 @@ __status__ = "Development"
 __dependecies__ = "Python-IPtables"
 
 import iptc
+import configparser
 
 class FirewallHandler():
     _table = ''
@@ -61,15 +62,13 @@ class FirewallHandler():
     def are_default_rules_present(self): #checks for the default rules necessary for port knocking; returns Boolean.
         return 0
 
-    def set_default_rules(self): #sets default rules necessary for port knocking
-        #pass knock traffic: iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-        #pass loopback traffic: iptables -A INPUT -s 127.0.0.0/8 -j ACCEPT
-        """Sets a list of default rules common to all implementations
+    def set_default_rules(self): # tested on 9/7 need error handling and maybe add a full table flush
+        """Sets a list of default rules to allow traffic on our loopback as well as knock traffic
         
         Args: 
 
         Returns:
-            is_set (bool): The return value is boolean; True for we set the rules and False for we failed to set the rules.
+            
         
         """
         #get list of active rules in INPUT chain
@@ -87,20 +86,34 @@ class FirewallHandler():
         rule_knock.target = rule_knock.create_target("ACCEPT")
         match = rule_knock.create_match("comment")
         match.comment = "default pk rule to accept knock traffic" 
+        match = iptc.Match(rule_knock, "state")
         chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+        match.state = "RELATED, ESTABLISHED"
+        rule_knock.add_match(match)
         chain.insert_rule(rule_knock)
 
-        # if rules[0]:
-        #     is_set = False
-        # else:
-        #     #set rules
-        #     try:
-        #         print('hi')
-        #         is_set = True
-        #     except Exception as ex:
-        #         print(str(ex)) # need logging here 
+    def set_user_rules(self, services):
+        """Sets a list of user defined services to accomodate public servers
 
-        # return is_set
+        Args:
+            services (list):
+        
+        Returns:
+
+        """
+        config = configparser.ConfigParser()
+        config.read(services)
+
+        print(config.sections())
+        #for service in services:
+        #    rule = iptc.Rule()
+
+        #    rule.target = rule.create_target("ACCEPT")
+        #    match = rule_knock.create_match("comment")
+        #    match.comment = "user defined rule" 
+        #    chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+        #    chain.insert_rule(rule)
+
 
     def are_knock_chains_present(self): #checks for our knock chains; only way to do this is to try and create them?
         knock0 = iptc.Chain(self._table, "KNOCK1") #iptc_is_chain
