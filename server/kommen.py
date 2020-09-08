@@ -68,8 +68,9 @@ class Kommen:
         #for rule in rules:
             #print(rule) # need to check about setting a rule name or desc
         
-        fw.set_default_rules() #test 9
+        #fw.set_default_rules() #test 9
 
+        fw.set_user_rules('services.ini')
 
         #server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
         #server.run_server()
