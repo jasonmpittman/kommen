@@ -51,9 +51,14 @@ class OtpHandler:
                 bytes():
 
         """
-        return base64.b32decode(self.secret)
+        missing_padding = len(self.secret) % 8 #we are picking the secret so do we need to check for padding?
+        
+        if missing_padding != 0:
+            self.secret += '=' * (8 - missing_padding)
+        
+        return base64.b32decode(self.secret, casefold=True)
 
-    def convert_int_to_bytes(self):
+    def convert_int_to_bytes(self, i, padding):
         """
             Args:
 
@@ -61,7 +66,11 @@ class OtpHandler:
         """
         converted = bytearray()
 
-        return converted
+        while i != 0:
+            converted.append(i & 0xFF)
+            i >>= 8
+
+        return bytes(bytearray(reversed(converted)).rjust(padding, b'\0'))
 
     def get_one_time_password(self):
         """Generate a one time password
