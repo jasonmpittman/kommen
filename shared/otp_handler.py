@@ -23,7 +23,7 @@ import base64, hmac, hashlib
 # decode to get bytes
 
 class OtpHandler:
-    secret = ' '
+    secret = 'DefaultSecretKey'
     length = 6
 
     def __init__(self, secret=None, length=None):
@@ -34,9 +34,13 @@ class OtpHandler:
 
         Returns:
 
-        """        
+        """ 
+        if secret != None:       
+            self.secret = secret
         
-        self.secret = secret
+        if length != None:
+            self.length = length
+
     
     def convert_secret_to_bytes(self):
         """Decode the base32 secret to byte array
