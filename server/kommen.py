@@ -22,6 +22,8 @@ from listeners import tcp_server
 #from handlers import asym_cryptography_handler as asym_crypto
 from handlers import registration_handler as registration
 from handlers import firewall_handler as firewall
+sys.path.append('../')
+from shared import otp_handler as otp
 
 class Kommen:
     def __init__(self, config_file):
@@ -59,7 +61,7 @@ class Kommen:
 
         # firewall testing
 
-        fw = firewall.FirewallHandler() #test 8
+        #fw = firewall.FirewallHandler() #test 8
         #chains = fw.get_chains()
         #for chain in chains:
             #print(chain)
@@ -70,7 +72,14 @@ class Kommen:
         
         #fw.set_default_rules() #test 9
 
-        fw.set_user_rules('handlers/services.ini')
+        #fw.set_user_rules('handlers/services.ini')
+
+        # otp testing
+        code = otp.OtpHandler('base32secret3232', 9) #this adds padding at > 9 length
+        result = code.get_one_time_password(0)
+        print(result)
+
+        print(code.verify_one_time_password(result, 0))
 
         #server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
         #server.run_server()
