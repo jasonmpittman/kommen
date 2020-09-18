@@ -37,7 +37,7 @@ class FirewallHandler():
 
         return chains
 
-    def get_rules_in_chain(self, chain):
+    def get_rules_in_chain(self, chain): #this looks done?
         """Queries local IPTables for list of rules in specified chain
         
         Args: 
@@ -59,10 +59,10 @@ class FirewallHandler():
         
         return rules
 
-    def are_default_rules_present(self): #checks for the default rules necessary for port knocking; returns Boolean.
+    def are_default_rules_present(self): #do we need this method?
         return 0
 
-    def set_default_rules(self): # tested on 9/7 need error handling and maybe add a full table flush
+    def set_default_rules(self): # tested on 9/7 need error handling and maybe add a full table flush #check on 9/18 and the second rule isn't setting?
         """Sets a list of default rules to allow traffic on our loopback as well as knock traffic
         
         Args: 
@@ -92,7 +92,7 @@ class FirewallHandler():
         rule_knock.add_match(match)
         chain.insert_rule(rule_knock)
 
-    def set_user_rules(self, services):
+    def set_user_rules(self, services): #finished and tested on 9/18 need error handling
         """Sets a list of user defined services to accomodate public servers
 
         Args:
@@ -101,24 +101,26 @@ class FirewallHandler():
         Returns:
 
         """
-        #print(services)
-
         config = configparser.ConfigParser()
         config.read(services)
 
-        #print(config.sections())
         for section in config.sections():
-            print(section[0])
-        #    rule = iptc.Rule()
+            rule = iptc.Rule()
+            if config.get(section, 'src') is not '':
+                rule.src = config.get(section, 'src')
+            if config.get(section, 'dst') is not '':
+                rule.dst = config.get(section, 'dst')
+            rule.in_interface = config.get(section, 'interface')
+            rule.protocol = config.get(section, 'protocol')
+            rule.target = rule.create_target(config.get(section, 'target'))
+            match = rule.create_match("comment")
+            match.comment = "user defined rule"
+            match = rule.create_match(config.get(section, 'protocol'))
+            match.dport = config.get(section, 'port') 
+            chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), config.get(section, 'chain'))
+            chain.insert_rule(rule)
 
-        #    rule.target = rule.create_target("ACCEPT")
-        #    match = rule_knock.create_match("comment")
-        #    match.comment = "user defined rule" 
-        #    chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
-        #    chain.insert_rule(rule)
-
-
-    def are_knock_chains_present(self): #checks for our knock chains; only way to do this is to try and create them?
+    def are_knock_chains_present(self): #Do we need this? checks for our knock chains; only way to do this is to try and create them?
         knock0 = iptc.Chain(self._table, "KNOCK1") #iptc_is_chain
         
         print(knock0.name)
@@ -128,10 +130,41 @@ class FirewallHandler():
         else:
             return False
 
-    def insert_chain(self, chain):
-        table = iptc.Table(iptc.Table.FILTER)
+    def add_knock_chain(self, chain):
+        """
+            Args:
 
-    def add_rule(self, chain, rule):
+            Returns:
+
+        """
+        table = iptc.Table(iptc.Table.FILTER)
+        # we need four chains for each client, KNOCK0_CLIENT, KNOCK1_CLIENT, KNOCK_2_CLIENT, KNOCK_3_CLIENT
+
+        # after we set the chains, we add rules to escalate from KNOCK0 to KNOCK3
+
+    def add_knock_rule(self, chain, rule):
+        """
+            Args:
+                chain(str): name of chain to be added
+                rule(list): 
+            Returns:
+        
+        """
+        rule = iptc.Rule()
+
+        rule.src = 
+
+        rule.dst = 
+
+        rule.protocol = 'tcp'
+        rule.target = 
+        match = rule.create_match("comment")
+        match.comment = "knock rule"
+        match = rule.create_match('tcp')
+        match.dport =  
+        knock_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain)
+        knock_chain.insert_rule(rule)
+        
         return 0
     
     #def remove_chain():
