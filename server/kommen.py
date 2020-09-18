@@ -61,7 +61,7 @@ class Kommen:
 
         # firewall testing
 
-        #fw = firewall.FirewallHandler() #test 8
+        fw = firewall.FirewallHandler() #test 8
         #chains = fw.get_chains()
         #for chain in chains:
             #print(chain)
@@ -72,14 +72,17 @@ class Kommen:
         
         #fw.set_default_rules() #test 9
 
-        #fw.set_user_rules('handlers/services.ini')
+        #fw.set_user_rules('handlers/services.ini') test 10
+
+        #fw.add_knock_chains('testclient')  #test 11a
+        fw.remove_knock_chains('testclient') #test11b
 
         # otp testing
-        code = otp.OtpHandler('base32secret3232', 9) #this adds padding at > 9 length
-        result = code.get_one_time_password(0)
-        print(result)
+        #code = otp.OtpHandler('base32secret3232', 9) #this adds padding at > 9 length
+        #result = code.get_one_time_password(0)
+        #print(result)
 
-        print(code.verify_one_time_password(result, 0))
+        #print(code.verify_one_time_password(result, 0))
 
         #server = tcp_server.TcpServer(self.ip_address, self.port, self.max_conn)
         #server.run_server()
