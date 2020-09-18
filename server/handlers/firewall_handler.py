@@ -120,7 +120,15 @@ class FirewallHandler():
             chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), config.get(section, 'chain'))
             chain.insert_rule(rule)
 
-    def are_knock_chains_present(self): #Do we need this? checks for our knock chains; only way to do this is to try and create them?
+    def are_knock_chains_present(self, client): 
+        """
+            Args:
+
+            Returns:
+                arePresent(bool): True if all chains for indicated client are present, otherwise False
+        """
+        arePresent = False
+
         knock0 = iptc.Chain(self._table, "KNOCK1") #iptc_is_chain
         
         print(knock0.name)
@@ -130,41 +138,77 @@ class FirewallHandler():
         else:
             return False
 
-    def add_knock_chain(self, chain):
+    def add_knock_chains(self, client):
         """
             Args:
+                chain(str): The unique id of the client
 
             Returns:
 
         """
         table = iptc.Table(iptc.Table.FILTER)
         # we need four chains for each client, KNOCK0_CLIENT, KNOCK1_CLIENT, KNOCK_2_CLIENT, KNOCK_3_CLIENT
+        knock0 = table.create_chain('KNOCK0_' + client)
+        knock1 = table.create_chain('KNOCK1_' + client)
+        knock2 = table.create_chain('KNOCK2_' + client)
+        knock3 = table.create_chain('KNOCK3_' + client)
 
         # after we set the chains, we add rules to escalate from KNOCK0 to KNOCK3
 
-    def add_knock_rule(self, chain, rule):
+
+    def add_knock_rules(self, chain):
         """
             Args:
                 chain(str): name of chain to be added
-                rule(list): 
             Returns:
         
         """
-        rule = iptc.Rule()
+        if chain == 'knock0':
+            print()
+            
+        elif chain == 'knock1':
+            print()
+        elif chain == 'knock2':
+            print()
+        elif chain == 'knock3':
+            print()
+        else:
+            print()
+        
+        # rule = iptc.Rule()
 
-        rule.src = 
+        # rule.src = 
 
-        rule.dst = 
+        # rule.dst = 
 
-        rule.protocol = 'tcp'
-        rule.target = 
-        match = rule.create_match("comment")
-        match.comment = "knock rule"
-        match = rule.create_match('tcp')
-        match.dport =  
-        knock_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain)
-        knock_chain.insert_rule(rule)
+        # rule.protocol = 'tcp'
+        # rule.target = 
+        # match = rule.create_match("comment")
+        # match.comment = "knock rule"
+        # match = rule.create_match('tcp')
+        # match.dport =  
+        # knock_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain)
+        # knock_chain.insert_rule(rule)
         
         return 0
     
-    #def remove_chain():
+    def remove_knock_chains(self, client):
+        """
+            Args:
+                client(str):
+
+            Returns:
+
+        """
+        table = iptc.Table(iptc.Table.FILTER)
+
+        try: #if there's a problem with one, the rest fail to execute...
+
+            table.delete_chain('KNOCK0_' + client)
+            table.delete_chain('KNOCK1_' + client)
+            table.delete_chain('KNOCK2_' + client)
+            table.delete_chain('KNOCK3_' + client)
+        
+        except Exception as e:
+            #print(e(str)) # need to implement logging here
+            print('error')
