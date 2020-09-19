@@ -138,42 +138,69 @@ class FirewallHandler():
         else:
             return False
 
-    def add_knock_chains(self, client):
+    def add_knock_chains(self, client, ports):
         """
             Args:
                 chain(str): The unique id of the client
-
+                ports(list): The list of knock ports
             Returns:
 
         """
         table = iptc.Table(iptc.Table.FILTER)
-        # we need four chains for each client, KNOCK0_CLIENT, KNOCK1_CLIENT, KNOCK_2_CLIENT, KNOCK_3_CLIENT
-        knock0 = table.create_chain('KNOCK0_' + client)
-        knock1 = table.create_chain('KNOCK1_' + client)
-        knock2 = table.create_chain('KNOCK2_' + client)
-        knock3 = table.create_chain('KNOCK3_' + client)
+        
+        STATE0 = table.create_chain('STATE0_' + client)
+        self.__add_knock_rules('STATE0', client, ports)
 
-        # after we set the chains, we add rules to escalate from KNOCK0 to KNOCK3
+        STATE1 = table.create_chain('STATE1_' + client)
+        self.__add_knock_rules('STATE1', client, ports)
+
+        STATE2 = table.create_chain('STATE2_' + client)
+        self.__add_knock_rules('STATE2', client, ports)
+
+        STATE3 = table.create_chain('STATE3_' + client)
+        self.__add_knock_rules('STATE3', client, ports)
+
+        # add our knock state chains to the main INPUT chain
+        self.__add_knock_rules('INPUT', client, ports)
 
 
-    def add_knock_rules(self, chain):
+    def __add_knock_rules(self, chain, client, ports):
         """
             Args:
                 chain(str): name of chain to be added
+                client(str):
+                ports(list):
+
             Returns:
         
         """
-        if chain == 'knock0':
+        if chain == 'STATE0':
             print()
-            
-        elif chain == 'knock1':
+            # -A STATE0_CLIENT -p tcp --dport port[0] -m recent --name KNOCK1_CLIENT --set -j DROP
+            # -A STATE0_CLIENT -j DROP
+        elif chain == 'STATE1':
             print()
-        elif chain == 'knock2':
+            # -A STATE1_CLIENT -m recent --name KNOCK1_CLIENT --remove
+            # -A STATE1_CLIENT -p tcp --dport port[1] -m recent --name KNOCK2_CLIENT --set -j DROP
+            # -A STATE1_CLIENT -j STATE0_CLIENT
+        elif chain == 'STATE2':
             print()
-        elif chain == 'knock3':
+            # -A STATE2_CLIENT -m recent --name KNOCK2_CLIENT --remove
+            # -A STATE2_CLIENT -p tcp --dport port[2] -m recent --name KNOCK3_CLIENT --set -j DROP
+            # -A STATE2_CLIENT -j STATE0_CLIENT
+        elif chain == 'STATE3':
             print()
+            # -A STATE3_CLIENT -m recent --name KNOCK3_CLIENT --remove
+            # -A STATE3_CLIENT -p tcp --dport 22 -j ACCEPT
+            # -A STATE3_CLIENT -j STATE0_CLIENT
+        elif chain == 'INPUT':
+            print()
+            # -A INPUT -m recent --name KNOCK3_CLIENT --rcheck -j STATE3_CLIENT
+            # -A INPUT -m recent --name KNOCK2_CLIENT --rcheck -j STATE2_CLIENT
+            # -A INPUT -m recent --name KNOCK1_CLIENT --rcheck -j STATE1_CLIENT
+            # -A INPUT -j STATE0_CLIENT
         else:
-            print()
+            print() #failed to add rules to chain for some reason
         
         # rule = iptc.Rule()
 
@@ -204,10 +231,10 @@ class FirewallHandler():
 
         try: #if there's a problem with one, the rest fail to execute...
 
-            table.delete_chain('KNOCK0_' + client)
-            table.delete_chain('KNOCK1_' + client)
-            table.delete_chain('KNOCK2_' + client)
-            table.delete_chain('KNOCK3_' + client)
+            table.delete_chain('STATE0_' + client)
+            table.delete_chain('STATE1_' + client)
+            table.delete_chain('STATE2_' + client)
+            table.delete_chain('STATE3_' + client)
         
         except Exception as e:
             #print(e(str)) # need to implement logging here
