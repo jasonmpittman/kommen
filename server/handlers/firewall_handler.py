@@ -92,7 +92,7 @@ class FirewallHandler():
         rule_knock.add_match(match)
         chain.insert_rule(rule_knock)
 
-    def set_user_rules(self, services): #finished and tested on 9/18 need error handling
+    def set_user_rules(self, services): #tested on 9/18 need error handling
         """Sets a list of user defined services to accomodate public servers
 
         Args:
@@ -143,6 +143,7 @@ class FirewallHandler():
             Args:
                 chain(str): The unique id of the client
                 ports(list): The list of knock ports
+            
             Returns:
 
         """
@@ -174,10 +175,23 @@ class FirewallHandler():
             Returns:
         
         """
+        rule = iptc.Rule()
+        rule.protocol = 'tcp'
+
         if chain == 'STATE0':
             print()
             # -A STATE0_CLIENT -p tcp --dport port[0] -m recent --name KNOCK1_CLIENT --set -j DROP
+            rule.target = rule.create_target('DROP')
+            match = rule.create_match('tcp')
+            match.dport = ports[0]
+            knock_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain)
+            knock_chain.insert_rule(rule)
+
+            #need to lookup how to get -m recent and --name here
+            
             # -A STATE0_CLIENT -j DROP
+            rule.target = rule.create_target('DROP')
+
         elif chain == 'STATE1':
             print()
             # -A STATE1_CLIENT -m recent --name KNOCK1_CLIENT --remove
@@ -202,14 +216,7 @@ class FirewallHandler():
         else:
             print() #failed to add rules to chain for some reason
         
-        # rule = iptc.Rule()
-
-        # rule.src = 
-
-        # rule.dst = 
-
-        # rule.protocol = 'tcp'
-        # rule.target = 
+ 
         # match = rule.create_match("comment")
         # match.comment = "knock rule"
         # match = rule.create_match('tcp')
@@ -219,7 +226,7 @@ class FirewallHandler():
         
         return 0
     
-    def remove_knock_chains(self, client):
+    def remove_knock_chains(self, client): # tested on 9/18 needs error handling
         """
             Args:
                 client(str):
