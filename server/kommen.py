@@ -75,7 +75,9 @@ class Kommen:
         #fw.set_user_rules('handlers/services.ini') test 10
 
         #fw.add_knock_chains('testclient')  #test 11a
-        fw.remove_knock_chains('testclient') #test11b
+        #fw.remove_knock_chains('testclient') #test11b
+        ports = ["99", "65535", "99"]
+        fw.add_knock_chains('testing', ports)
 
         # otp testing
         #code = otp.OtpHandler('base32secret3232', 9) #this adds padding at > 9 length
