@@ -13,6 +13,8 @@ __status__ = "Development"
 __dependecies__ = "Python-IPtables"
 
 import iptc
+import subprocess
+from subprocess import check_output
 import configparser
 
 class FirewallHandler():
@@ -120,20 +122,17 @@ class FirewallHandler():
             chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), config.get(section, 'chain'))
             chain.insert_rule(rule)
 
-    def are_knock_chains_present(self, client): 
+    def is_knock_chain_present(self, chain): #tested on 9/22
         """
             Args:
+                chain(str): 
 
             Returns:
-                arePresent(bool): True if all chains for indicated client are present, otherwise False
+                
         """
-        arePresent = False
-
-        knock0 = iptc.Chain(self._table, "KNOCK1") #iptc_is_chain
+        output = check_output(["iptables", "-L"])
         
-        print(knock0.name)
-        
-        if knock0:
+        if chain in str(output):
             return True
         else:
             return False
@@ -149,20 +148,40 @@ class FirewallHandler():
         """
         table = iptc.Table(iptc.Table.FILTER)
         
-        STATE0 = table.create_chain('STATE0_' + client)
-        self.__add_knock_rules('STATE0', client, ports)
+        #need to flush rules if chain exists and ensure __add runs
 
-        STATE1 = table.create_chain('STATE1_' + client)
-        self.__add_knock_rules('STATE1', client, ports)
+        if not self.is_knock_chain_present('STATE0_' + client):
+            print('STATE0 chain not present...creating it now')
+            STATE0 = table.create_chain('STATE0_' + client)
+            self.__add_knock_rules('STATE0', client, ports) #should we flush before adding? we don't want to double rules
+        
+        if not self.is_knock_chain_present('STATE1_' + client):
+            print('STATE1 chain not present...creating it now')
+            #STATE1 = table.create_chain('STATE1_' + client)
+            subprocess.run(["iptables -N STATE1_" + client], shell=True) #this works whereas iptc didn't
+            self.__add_knock_rules('STATE1', client, ports)
 
-        STATE2 = table.create_chain('STATE2_' + client)
-        self.__add_knock_rules('STATE2', client, ports)
+        #STATE2 = table.create_chain('STATE2_' + client)
+        #self.__add_knock_rules('STATE2', client, ports)
 
-        STATE3 = table.create_chain('STATE3_' + client)
-        self.__add_knock_rules('STATE3', client, ports)
+        #STATE3 = table.create_chain('STATE3_' + client)
+        #self.__add_knock_rules('STATE3', client, ports)
 
         # add our knock state chains to the main INPUT chain
-        self.__add_knock_rules('INPUT', client, ports)
+        #self.__add_knock_rules('INPUT', client, ports)
+
+    def __build_command(self, client, knock, state, port): #tested 9/22 needs docstring
+        """Utility method to build dynamic strings used in knock rules
+            
+            Args:
+
+            Returns:
+        """
+        name = "KNOCK" + knock + "_" + client
+        state = "STATE" + state + "_" + client
+        command = "iptables -A " + state + " -p tcp --dport " + port + " -m recent --name " + name + " --set -j DROP"
+
+        return command
 
 
     def __add_knock_rules(self, chain, client, ports):
@@ -175,33 +194,28 @@ class FirewallHandler():
             Returns:
         
         """
-        rule = iptc.Rule()
-        rule.protocol = 'tcp'
-
         if chain == 'STATE0':
-            print()
-            # -A STATE0_CLIENT -p tcp --dport port[0] -m recent --name KNOCK1_CLIENT --set -j DROP
-            rule.target = rule.create_target('DROP')
-            match = rule.create_match('tcp')
-            match.dport = ports[0]
-            knock_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain)
-            knock_chain.insert_rule(rule)
-
-            #need to lookup how to get -m recent and --name here
+            command = self.__build_command(client, "1", "0", ports[0]) #this works
+            subprocess.run([command], shell=True)           
             
             # -A STATE0_CLIENT -j DROP
-            rule.target = rule.create_target('DROP')
+            subprocess.run(["iptables -A STATE0_" + client + " -j DROP"], shell=True) #this works. do we need another util method?
 
         elif chain == 'STATE1':
-            print()
             # -A STATE1_CLIENT -m recent --name KNOCK1_CLIENT --remove
+            subprocess.run(["iptables -A STATE1_" + client + " -m recent --name KNOCK1_" + client + " --remove"], shell=True)
             # -A STATE1_CLIENT -p tcp --dport port[1] -m recent --name KNOCK2_CLIENT --set -j DROP
+            command = self.__build_command(client, "2", "1", ports[1])
+            subprocess.run([command], shell=True)
             # -A STATE1_CLIENT -j STATE0_CLIENT
+            subprocess.run(["iptables -A STATE1_" + client + " -j DROP"], shell=True)
+
         elif chain == 'STATE2':
             print()
             # -A STATE2_CLIENT -m recent --name KNOCK2_CLIENT --remove
             # -A STATE2_CLIENT -p tcp --dport port[2] -m recent --name KNOCK3_CLIENT --set -j DROP
             # -A STATE2_CLIENT -j STATE0_CLIENT
+
         elif chain == 'STATE3':
             print()
             # -A STATE3_CLIENT -m recent --name KNOCK3_CLIENT --remove
@@ -236,7 +250,7 @@ class FirewallHandler():
         """
         table = iptc.Table(iptc.Table.FILTER)
 
-        try: #if there's a problem with one, the rest fail to execute...
+        try: #if there's a problem with one, the rest fail to execute... #assume this works for now; build intelligence in v2
 
             table.delete_chain('STATE0_' + client)
             table.delete_chain('STATE1_' + client)
